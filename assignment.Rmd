@@ -2,29 +2,39 @@
 title: "Assignment"
 author: "Callie Stephenson"
 date: "2023-08-17"
-output: html_document
+output: github_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+```{r}
+########## Load Libraries 
+# Load packages raster, habtools, ggplot2, dplyr, fishualize
+library(raster)
+library(habtools)
+library(ggplot2)
+library(dplyr)
+library(fishualize)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#### test that habtools loaded appropriately
+plot(horseshoe)
 ```
 
-## Including Plots
+### Current lab 
+Donahue Lab
 
-You can also embed plots, for example:
+### Project focus 
+Thesis work is on effects of submarine groundwater discharge (a natural environmental gradient) on coral reef ecosystem functioning. Specifically looking at fish community structure and coral growth / health.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+### Why you chose this course 
+I believe furthering my understanding of how structure relates to ecosystem functioning will enhance my ability to ask scientific questions related to the topics. This subject matter relates to my current projects and long-term career goals. 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### What do you want to learn about the most in this course
+The techniques commonly used to test and analyze questions related to ecosystem functioning vs. the ecosystem's structure.
+
+### Your R experience
+Light, have taken MBIO 612 (Data Science Fundamentals in R) and can get by, but I get by with a little help from my friends.
+
+### Fun fact 
+I do a back handspring every six months to make sure I still can (I still can)
