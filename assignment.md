@@ -90,7 +90,7 @@ ecosystem functioning vs. the ecosystem’s structure.
 ### Your R experience
 
 Light, have taken MBIO 612 (Data Science Fundamentals in R) and can get
-by, but I get by with a little help from my friends.
+by with a little help from my friends.
 
 ### Fun fact
 
