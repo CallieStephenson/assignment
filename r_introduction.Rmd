@@ -1,0 +1,347 @@
+---
+title: 'Introduction in R, ggplot2, dplyr, Rmarkdown'
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, echo = FALSE, message = FALSE}  
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+library(dplyr)
+library(ggplot2)
+library(fishualize)
+#the echo in the first line is telling it to not print this whole chunk
+```
+
+## Rstudio overview
+Corals reef stressors
+ - climate change 
+
+ - pollution 
+
+ - overfishing 
+
+ - plastics 
+
+ - sedimentation 
+
+**bold**
+*italics*
+
+[Link](https://google.com)
+![Image](doc/images/parrot.jpeg)
+```{r}
+#hit option, command, i, and that will allow you to add a new chunk, you can also use 
+```
+
+```
+1+1
+hist(rnorm(100))
+```
+```{r}
+1+1
+hist(rnorm(100))
+```
+
+R understands Latex! See:
+
+One is in line with text, $x^2$, the other is not
+$$ x^2 $$
+You can also hide comments to yourself in a .Rmd that will not show up in the .md
+you will need to put it in between the following characters, which are sadly hidden. it's <, then !, then -- at the front and -- and > at the end. For example
+
+<!-- butts, butts, butts -->
+
+LEARNIN NEW THINGS
+
+## Rmarkdown
+
+## Basic R
+
+Writing functions:
+The following r chunk creates a function called square that has one argument (x), and the output of function(x) is to calculate $x^2$. The second created function, rectangle, has two arguments (x and y), and these multiply 3*6
+
+```{r}
+square <- function(x) {
+  x^2
+}
+
+square(x=5)
+
+rectangle <- function(x,y){
+  x*y
+}
+
+rectangle (3,6)
+```
+
+
+### R chunk
+
+### Load data
+
+### Plot data
+
+## Data wrangling   
+
+### Read data   
+```{r}
+morpho <- read.csv("r_introduction/data/3DLaserScannedColonies.csv")
+traits_raw <- read.csv("r_introduction/data/traits.csv")
+```
+
+### filter and select and mutate
+```{r}
+traits <- select(traits_raw, Species = species, genus, trait_name, value, standard_unit)
+skel_dens <- traits %>% 
+  filter(trait_name=="Skeletal density") %>% #== is needs to be the skeletal density
+  select(Species, genus, skel_den = value) %>% #shorthand to type the pipe is command, shift, m
+  mutate(skel_dens_kg = skel_den/1000)
+```
+
+### join two data frames    
+```{r}
+combine <- left_join(morpho, skel_dens) #the warning is fine, there's multiple examples of a species in skel_dens, so it's got the 'many to many' issue. If the skel_dens was condensed to mean of COV or something it would not create the error
+combine_full <- full_join(morpho, skel_dens) #combines all of it
+combine_right <- right_join(morpho, skel_dens) #this adds morpho to skel_dens
+```
+
+
+### summarize data  
+```{r}
+skel_dens_species <- skel_dens %>%
+  group_by(Species, genus) %>%
+  summarise(skel_den_mean = mean(skel_den),
+            skel_den_max = max(skel_den))
+
+#now if you want to do the group_by argument, for example, genus, here ya go:
+skel_dens_genus <- skel_dens_species %>%
+  group_by(genus) %>% 
+  summarise_if(is.numeric, mean)
+
+```
+
+
+## Data visualisation     
+
+### Histogram     
+```{r}
+ggplot(data = skel_dens) + 
+  geom_histogram(aes(x = skel_den))
+
+##change this from grey to blue. because this isn't data we're gonna throw it down in the histogram
+ggplot(data = skel_dens) + 
+  geom_histogram(aes(x = skel_den), color = "lightblue")
+
+#which only changes the freakin outline!!! you gotta fill it
+ggplot(data = skel_dens) + 
+  geom_histogram(aes(x = skel_den), fill = "lightblue")
+```
+
+### Barplot   
+```{r}
+ggplot(skel_dens_genus)+
+  geom_col(aes(y=genus, x = skel_den_mean))
+
+ggplot(skel_dens_genus) +
+  geom_col(aes(y= reorder(genus, skel_den_mean), 
+           x = skel_den_mean))
+
+ggplot(skel_dens_genus) +
+  geom_col(aes(y= reorder(genus, skel_den_mean), 
+           x = skel_den_mean)) +
+  labs(x="Skeletal density (g/cm^3)", y= "Genus")
+
+ggplot(skel_dens_genus) +
+  geom_col(aes(y= reorder(genus, skel_den_mean), 
+           x = skel_den_mean),
+           fill ="darkgreen",
+           alpha = 0.5) +
+  labs(x="Skeletal density (g/cm^3)", y= "Genus")
+```
+
+     
+### Boxplot    
+
+```{r}
+ggplot(combine) +
+  geom_boxplot(aes(x = GrowthForm, y = skel_den))
+
+ggplot(morpho) +
+  geom_boxplot(aes(x= GrowthForm, y = Convexity, fill = Quality))
+
+ggplot(morpho) +
+  geom_boxplot(aes(x= reorder(GrowthForm, Convexity), y = Convexity, fill = Quality))
+
+ggplot(morpho) +
+  geom_boxplot(aes(y= reorder(GrowthForm, Convexity), x = Convexity, fill = Quality))
+```
+
+### Scatter plot   
+```{r}
+ggplot(morpho) +
+  geom_point(aes(x = ColonySA, y = ColonyVol)) +
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10")
+
+
+ggplot(morpho) +
+  geom_point(aes(x = ColonySA, y = ColonyVol, color = GrowthForm)) +
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10")
+
+```
+
+### Regression plot   
+```{r, fig.height=4, fig.width=6, echo=FALSE, message=FALSE, warning = FALSE, fig.cap = "fig.1 M Figure"}
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = GrowthForm))+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm") + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") 
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = GrowthForm))+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol, color = GrowthForm), method = "lm") + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") 
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = GrowthForm))+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol, color = GrowthForm), method = "lm") + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10")+
+  facet_wrap(~GrowthForm)
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = GrowthForm))+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol, color = GrowthForm), method = "lm", se = FALSE) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10")+
+  facet_wrap(~GrowthForm)
+
+###HYFR LETS USE OUR OWN COLOR SCHEMEEEEEEE
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = GrowthForm))+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol, color = GrowthForm), method = "lm", se = FALSE) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish_d(option = "Trimma_lantana") #fishulaize is Nina's color palletes with fish names <3
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity))+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana")
+
+#LETS LOOK AT SOME FISH COLORS
+
+fishualize(option = "Zebrasoma_velifer")
+fishualize(option = "Zebrasoma_velifer", n=10)
+```
+
+find yourself some fish colors:
+[Link](https://github.com/nschiett/fishualize)
+
+```{r}
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, shape = Quality), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana")
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, shape = Quality), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana")
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, shape = Quality), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana")
+
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, shape = Quality, size=Convexity), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana")
+```
+
+#### Now formatting fun
+
+```{r}
+###Add in a theme to get rid of the gross r background
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, shape = Quality, size=Convexity), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana") +
+  theme_bw()
+
+
+#another option
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, shape = Quality, size=Convexity), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana") +
+  theme_classic()
+
+
+#another option
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, size=Convexity), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana") +
+  theme_classic() +
+  theme(axis.title = element_text(size = 14),
+        legend.position = "top")
+
+#another option
+ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, size=Convexity), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana") +
+  theme_classic() +
+  theme(axis.title = element_text(size = 14),
+        legend.position = "top",
+        panel.grid.major = element_line(colour = "blue"))
+```
+
+we've just been playing around, now let's store it!
+```{r}
+plot1 <- ggplot(morpho) +
+  geom_point(aes(x= ColonySA, y = ColonyVol, color = Convexity, size=Convexity), alpha = 0.8)+
+  geom_smooth(aes(x = ColonySA, y = ColonyVol), method = "lm", se = FALSE, linetype = 1, color = "black", size=2) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  scale_color_fish(option = "Trimma_lantana") +
+  theme_classic() +
+  theme(axis.title = element_text(size = 14),
+        legend.position = "top")
+
+ggsave(plot = plot1, filename = "r_introduction/output/plot1.png", width = 8, height = 6)
+```
+
+### Colors, shapes, sizes    
+
+### Themes    
+
+
+
+
+
+
